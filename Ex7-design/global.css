@@ -1,0 +1,24 @@
+body {
+  margin: 0;
+  line-height: normal;
+}
+
+:root {
+  /* Common Style Variables */
+
+  /* Color */
+  --Foundation-Orange-Normal: #fd6f00;
+  --Foundation-White-Dark-active: #707070;
+  --Foundation-White-Dark-hover: #959595;
+  --Foundation-White-Darker: #575757;
+  --Foundation-White-Light: #fefefe;
+  --Foundation-White-Normal-active: #c6c6c6;
+  --Foundation-White-Normal-hover: #dfdfdf;
+
+  /* Gradients */
+  --Gradint: linear-gradient(
+    94.36deg,
+    var(--Foundation-Orange-Normal),
+    #e46400
+  );
+}

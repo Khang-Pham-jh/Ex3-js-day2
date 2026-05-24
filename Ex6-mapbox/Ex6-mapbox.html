@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Location Search Map</title>
+
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="./Ex6-mapbox.css" />
+  </head>
+
+  <body>
+    <main class="map-app">
+      <section class="search-panel" aria-label="Location search">
+        <form id="searchForm" class="search-form">
+          <label for="searchInput" class="search-label">
+            Search location
+          </label>
+
+          <div class="search-control">
+            <input
+              id="searchInput"
+              class="search-input"
+              type="text"
+              placeholder="Search a place..."
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="suggestionList"
+            />
+
+            <button
+              id="clearSearchBtn"
+              class="clear-search-btn"
+              type="button"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          </div>
+
+          <ul id="suggestionList" class="suggestion-list" role="listbox"></ul>
+        </form>
+      </section>
+
+      <section
+        id="resultPanel"
+        class="result-panel hidden"
+        aria-label="Search results panel"
+      >
+        <div class="result-panel-header">
+          <h3>Search results</h3>
+
+          <button
+            id="closeResultPanelBtn"
+            class="close-result-panel-btn"
+            type="button"
+            aria-label="Close search results"
+          >
+            ×
+          </button>
+        </div>
+
+        <ul id="resultList" class="result-list" role="listbox"></ul>
+      </section>
+
+      <section
+        id="infoCard"
+        class="info-card hidden"
+        aria-label="Selected location information"
+      >
+        <div class="info-card-header">
+          <h2 id="placeName">Selected place</h2>
+
+          <button
+            id="closeInfoBtn"
+            class="close-info-btn"
+            type="button"
+            aria-label="Close information card"
+          >
+            ×
+          </button>
+        </div>
+
+        <p id="placeAddress" class="place-address">Address will appear here.</p>
+
+        <p id="placeCoords" class="place-coords">
+          Coordinates will appear here.
+        </p>
+      </section>
+
+      <section id="map" class="map-container" aria-label="Map area"></section>
+    </main>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
+    <script src="./Ex6-mapbox.js"></script>
+  </body>
+</html>
