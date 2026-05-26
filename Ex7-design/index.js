@@ -1,58 +1,42 @@
 (() => {
   'use strict';
 
-  const sectionSelectors = {
-    home: ['.desktop-1 .section-home', '.only-mobile .section-home', '.section-home'],
-    services: ['.desktop-1 .section-services', '.only-mobile .section-services', '.section-services'],
-    about: ['.desktop-1 .section-about', '.only-mobile .section-about', '.section-about'],
-    portfolio: ['.desktop-1 .section-portfolio', '.only-mobile .section-portfolio', '.section-portfolio'],
-    contact: ['.desktop-1 .section-contact', '.only-mobile .section-contact', '.section-contact'],
-  };
-
-  const navLabelToSection = {
+  const sectionIds = {
     home: 'home',
     services: 'services',
-    'about me': 'about',
+    about: 'about',
     portfolio: 'portfolio',
-    'contact me': 'contact',
-  };
-
-  const filterLabelToCategory = {
-    all: 'all',
-    'website design': 'website-design',
-    'app mobile design': 'app-mobile-design',
-    'app desktop': 'app-desktop',
-    'landing page design': 'landing-page-design',
-    braiding: 'braiding',
-  };
-
-  const categoryByImage = {
-    'Project-Backgrounds@2x.png': ['website-design', 'app-mobile-design'],
-    'Rectangle-26@2x.png': ['app-desktop', 'landing-page-design'],
-    'Rectangle-22@2x.png': ['braiding'],
+    contact: 'contact',
   };
 
   const serviceOptions = ['Web Design', 'Development', 'Branding', 'Consulting'];
 
-  const fieldDefinitions = [
-    {
-      key: 'name',
-      placeholder: 'Name',
+  const fieldDefinitions = {
+    name: {
+      label: 'Name',
       validate: (value) => (value.trim() ? '' : 'required'),
     },
-    {
-      key: 'email',
-      placeholder: 'Email',
-      validate: (value) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
-          ? ''
-          : 'invalid format',
-    },
-    {
-      key: 'phone',
-      placeholder: 'Phone Number',
+    email: {
+      label: 'Email',
       validate: (value) => {
         const trimmed = value.trim();
+
+        if (!trimmed) {
+          return 'required';
+        }
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? '' : 'invalid format';
+      },
+    },
+    phone: {
+      label: 'Phone Number',
+      validate: (value) => {
+        const trimmed = value.trim();
+
+        if (!trimmed) {
+          return 'required';
+        }
+
         const digitCount = (trimmed.match(/\d/g) || []).length;
 
         return /^\+?[0-9\s().-]+$/.test(trimmed) && digitCount >= 7
@@ -60,474 +44,316 @@
           : 'invalid format';
       },
     },
-    {
-      key: 'timeline',
-      placeholder: 'Timeline',
+    timeline: {
+      label: 'Timeline',
       validate: (value) => (value.trim() ? '' : 'required'),
     },
-    {
-      key: 'projectDetails',
-      placeholder: 'Project Details...',
+    'project-details': {
+      label: 'Project Details',
       validate: (value) => (value.trim() ? '' : 'required'),
     },
-  ];
+  };
 
   const normalizeText = (value) =>
     String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
 
-  const isVisible = (element) => {
-    if (!element) {
-      return false;
-    }
-
-    const computedStyle = window.getComputedStyle(element);
-
-    return (
-      computedStyle.display !== 'none' &&
-      computedStyle.visibility !== 'hidden' &&
-      element.getClientRects().length > 0
-    );
-  };
-
-  const getVisibleTarget = (key) => {
-    for (const selector of sectionSelectors[key] || []) {
-      const elements = Array.from(document.querySelectorAll(selector));
-      const visibleElement = elements.find(isVisible);
-
-      if (visibleElement) {
-        return visibleElement;
-      }
-    }
-
-    return null;
-  };
-
   const scrollToSection = (key) => {
-    const target = getVisibleTarget(key);
+    const sectionId = sectionIds[key];
 
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!sectionId) {
+      return;
+    }
+
+    const section = document.getElementById(sectionId);
+
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const ensureErrorNode = (element) => {
-    let wrapper = element.closest('.field-group');
+  const setActiveNav = (key) => {
+    const desktopLinks = document.querySelectorAll('.site-nav-link');
 
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      wrapper.className = 'field-group';
-      element.parentNode.insertBefore(wrapper, element);
-      wrapper.appendChild(element);
-    }
-
-    if (element.matches('textarea')) {
-      wrapper.classList.add('field-group--textarea');
-    }
-
-    let errorNode = wrapper.querySelector('.field-error');
-
-    if (!errorNode) {
-      errorNode = document.createElement('div');
-      errorNode.className = 'field-error';
-      errorNode.setAttribute('aria-live', 'polite');
-      errorNode.textContent = '\u00A0';
-      wrapper.appendChild(errorNode);
-    }
-
-    return { wrapper, errorNode };
+    desktopLinks.forEach((link) => {
+      const isActive = link.dataset.target === key;
+      link.classList.toggle('site-nav-link-active', isActive);
+    });
   };
 
-  const validateField = (input, errorNode) => {
-    const definition = fieldDefinitions.find(
-      (item) => item.placeholder === input.placeholder,
-    );
+  const setupNavigation = () => {
+    const navLinks = document.querySelectorAll('.site-nav-link, .footer-nav-link');
 
-    if (!definition) {
-      return true;
-    }
+    navLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
 
-    const errorMessage = definition.validate(input.value);
+        const sectionKey = normalizeText(link.dataset.target);
 
-    input.setAttribute('aria-invalid', errorMessage ? 'true' : 'false');
-    errorNode.textContent = errorMessage || '\u00A0';
-
-    return !errorMessage;
-  };
-
-  const setupNavigation = (shell) => {
-    const navigationItems = shell.querySelectorAll(
-      '.home-parent > *, .site-nav > *, .navigation > *, .footer-links > *',
-    );
-
-    navigationItems.forEach((item) => {
-      const sectionKey = navLabelToSection[normalizeText(item.textContent)];
-
-      if (!sectionKey) {
-        return;
-      }
-
-      item.style.cursor = 'pointer';
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-
-      const activate = () => scrollToSection(sectionKey);
-
-      item.addEventListener('click', activate);
-      item.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          activate();
+        if (!sectionIds[sectionKey]) {
+          return;
         }
+
+        scrollToSection(sectionKey);
+        setActiveNav(sectionKey);
       });
     });
   };
 
-  const getCardCategories = (card) => {
-    const existingCategory = card.dataset.category || '';
-    const existingCategories = existingCategory.split(/\s+/).filter(Boolean);
+  const setupPortfolioFilters = () => {
+    const cards = Array.from(document.querySelectorAll('.project-card'));
+    const filters = Array.from(document.querySelectorAll('.portfolio-filter'));
 
-    if (existingCategories.length) {
-      return existingCategories;
-    }
-
-    const image = card.querySelector('img');
-    const source = image ? image.getAttribute('src') || '' : '';
-
-    for (const [fileName, categories] of Object.entries(categoryByImage)) {
-      if (source.includes(fileName)) {
-        return categories;
-      }
-    }
-
-    return [];
-  };
-
-  
-
- const getFilterControls = (shell) =>
-  Array.from(
-    shell.querySelectorAll(
-      '.portfolio-filter, .portfolio-filters > button, .portfolio__filters > button, .filter-container-parent > button',
-    ),
-  ).filter((control) => {
-    const explicitFilter = control.dataset.filter;
-
-    if (explicitFilter) {
-      return Object.values(filterLabelToCategory).includes(explicitFilter);
-    }
-
-    return Object.prototype.hasOwnProperty.call(
-      filterLabelToCategory,
-      normalizeText(control.textContent),
-    );
-  });
-
-  const setupPortfolioFilters = (shell) => {
-    const cards = Array.from(
-      shell.querySelectorAll('.project-card, .project-cards, .project-container4'),
-    );
-    const controls = getFilterControls(shell);
-
-    if (!cards.length || !controls.length) {
+    if (!cards.length || !filters.length) {
       return;
     }
 
-    cards.forEach((card) => {
-      const categories = getCardCategories(card);
+    const applyFilter = (category) => {
+      cards.forEach((card) => {
+        const categories = (card.dataset.category || '').split(/\s+/).filter(Boolean);
+        const isVisible = category === 'all' || categories.includes(category);
 
-      card.dataset.category = categories.join(' ');
-      card.hidden = false;
-      card.classList.remove('project-is-hidden');
-    });
+        card.hidden = !isVisible;
+        card.classList.toggle('project-is-hidden', !isVisible);
+      });
 
-    const setControlState = (activeLabel) => {
-      controls.forEach((control) => {
-        const label = normalizeText(control.textContent);
-        const isSelected = label === activeLabel;
-
-        control.dataset.state = isSelected ? 'selected' : 'unselected';
-        control.setAttribute('aria-pressed', String(isSelected));
-
-        control.classList.remove('js-active-filter');
+      filters.forEach((filter) => {
+        const isSelected = filter.dataset.filter === category;
+        filter.dataset.state = isSelected ? 'selected' : 'unselected';
+        filter.setAttribute('aria-pressed', String(isSelected));
       });
     };
 
-    const applyFilter = (activeLabelOrCategory) => {
-  const targetCategory =
-    filterLabelToCategory[activeLabelOrCategory] || activeLabelOrCategory || 'all';
-
-  cards.forEach((card) => {
-    const categories = (card.dataset.category || '').split(/\s+/).filter(Boolean);
-    const shouldShow =
-      targetCategory === 'all' || categories.includes(targetCategory);
-
-    card.hidden = !shouldShow;
-    card.classList.toggle('project-is-hidden', !shouldShow);
-  });
-
-  controls.forEach((control) => {
-    const controlCategory =
-      control.dataset.filter || filterLabelToCategory[normalizeText(control.textContent)];
-
-    const isSelected = controlCategory === targetCategory;
-
-    control.dataset.state = isSelected ? 'selected' : 'unselected';
-    control.setAttribute('aria-pressed', String(isSelected));
-    control.classList.remove('js-active-filter');
-  });
-};
-    controls.forEach((control) => {
-  control.type = control.type || 'button';
-  control.dataset.state = control.dataset.state || 'unselected';
-  control.setAttribute('aria-pressed', control.dataset.state === 'selected' ? 'true' : 'false');
-
-  control.addEventListener('click', (event) => {
-    const targetCategory =
-      control.dataset.filter || filterLabelToCategory[normalizeText(control.textContent)];
-
-    if (!targetCategory) {
-      return;
-    }
-
-    event.preventDefault();
-    applyFilter(targetCategory);
-  });
-});
-
-
+    filters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        const category = filter.dataset.filter || 'all';
+        applyFilter(category);
+      });
+    });
 
     applyFilter('all');
   };
 
-  const setupDropdown = (shell) => {
-    const dropdowns = Array.from(
-      shell.querySelectorAll('.service-of-interest-parent, .input-container4'),
-    );
+  const ensureFieldError = (fieldNode) => {
+    let errorNode = fieldNode.querySelector('.field-error');
 
-    dropdowns.forEach((dropdown) => {
-      if (dropdown.dataset.enhanced === 'true') {
-        return;
-      }
+    if (!errorNode) {
+      errorNode = document.createElement('p');
+      errorNode.className = 'field-error';
+      errorNode.setAttribute('aria-live', 'polite');
+      errorNode.textContent = '\u00A0';
+      fieldNode.appendChild(errorNode);
+    }
 
-      const labelNode = dropdown.querySelector('.service-of-interest');
-
-      if (!labelNode) {
-        return;
-      }
-
-      const { errorNode } = ensureErrorNode(dropdown);
-
-      dropdown.dataset.enhanced = 'true';
-      dropdown.dataset.selectedValue = '';
-      dropdown.setAttribute('role', 'button');
-      dropdown.setAttribute('tabindex', '0');
-      dropdown.setAttribute('aria-haspopup', 'listbox');
-      dropdown.setAttribute('aria-expanded', 'false');
-      dropdown.setAttribute('aria-invalid', 'false');
-
-      const panel = document.createElement('div');
-      panel.className = 'js-dropdown-panel';
-      panel.setAttribute('role', 'listbox');
-
-      serviceOptions.forEach((option) => {
-        const optionButton = document.createElement('button');
-
-        optionButton.type = 'button';
-        optionButton.className = 'js-dropdown-option';
-        optionButton.textContent = option;
-        optionButton.setAttribute('role', 'option');
-
-        optionButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-
-          labelNode.textContent = option;
-          dropdown.dataset.selectedValue = option;
-          dropdown.setAttribute('aria-invalid', 'false');
-          errorNode.textContent = '\u00A0';
-
-          panel.classList.remove('open');
-          dropdown.setAttribute('aria-expanded', 'false');
-        });
-
-        panel.appendChild(optionButton);
-      });
-
-      dropdown.appendChild(panel);
-
-      const closePanel = () => {
-        panel.classList.remove('open');
-        dropdown.setAttribute('aria-expanded', 'false');
-      };
-
-      const togglePanel = () => {
-        const isOpen = !panel.classList.contains('open');
-
-        document.querySelectorAll('.js-dropdown-panel.open').forEach((openPanel) => {
-          if (openPanel !== panel) {
-            openPanel.classList.remove('open');
-            const parentDropdown = openPanel.closest('.service-of-interest-parent, .input-container4');
-
-            if (parentDropdown) {
-              parentDropdown.setAttribute('aria-expanded', 'false');
-            }
-          }
-        });
-
-        panel.classList.toggle('open', isOpen);
-        dropdown.setAttribute('aria-expanded', String(isOpen));
-      };
-
-      dropdown.addEventListener('click', (event) => {
-        if (event.target.closest('.js-dropdown-option')) {
-          return;
-        }
-
-        event.stopPropagation();
-        togglePanel();
-      });
-
-      dropdown.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          togglePanel();
-        }
-
-        if (event.key === 'Escape') {
-          closePanel();
-        }
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!dropdown.contains(event.target)) {
-          closePanel();
-        }
-      });
-    });
+    return errorNode;
   };
 
-  const setupContactValidation = (shell) => {
-    const inputSelector = [
-      '.contact-form input',
-      '.contact-form textarea',
-      '.input-container-parent input',
-      '.input-container-parent textarea',
-    ].join(', ');
+  const setupDropdown = () => {
+    const selectButton = document.querySelector('.contact-form-select');
 
-    const inputs = Array.from(shell.querySelectorAll(inputSelector)).filter((input) =>
-      fieldDefinitions.some((field) => field.placeholder === input.placeholder),
-    );
+    if (!selectButton) {
+      return { getValue: () => '', validate: () => true };
+    }
 
-    if (!inputs.length) {
+    const field = selectButton.closest('.contact-form-field');
+    const label = selectButton.querySelector('.contact-form-select-label');
+    const errorNode = ensureFieldError(field);
+
+    const panel = document.createElement('div');
+    panel.className = 'js-dropdown-panel';
+    panel.setAttribute('role', 'listbox');
+    field.appendChild(panel);
+
+    selectButton.dataset.selectedValue = '';
+    selectButton.setAttribute('aria-invalid', 'false');
+
+    const close = () => {
+      panel.classList.remove('open');
+      selectButton.setAttribute('aria-expanded', 'false');
+    };
+
+    const open = () => {
+      panel.classList.add('open');
+      selectButton.setAttribute('aria-expanded', 'true');
+    };
+
+    serviceOptions.forEach((option) => {
+      const optionNode = document.createElement('button');
+      optionNode.type = 'button';
+      optionNode.className = 'js-dropdown-option';
+      optionNode.setAttribute('role', 'option');
+      optionNode.textContent = option;
+
+      optionNode.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        label.textContent = option;
+        selectButton.dataset.selectedValue = option;
+        selectButton.setAttribute('aria-invalid', 'false');
+        errorNode.textContent = '\u00A0';
+        close();
+      });
+
+      panel.appendChild(optionNode);
+    });
+
+    selectButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (panel.classList.contains('open')) {
+        close();
+      } else {
+        open();
+      }
+    });
+
+    selectButton.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        close();
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+
+        if (panel.classList.contains('open')) {
+          close();
+        } else {
+          open();
+        }
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!field.contains(event.target)) {
+        close();
+      }
+    });
+
+    const validate = () => {
+      const selectedValue = selectButton.dataset.selectedValue || '';
+
+      if (!selectedValue) {
+        selectButton.setAttribute('aria-invalid', 'true');
+        errorNode.textContent = 'required';
+        return false;
+      }
+
+      selectButton.setAttribute('aria-invalid', 'false');
+      errorNode.textContent = '\u00A0';
+      return true;
+    };
+
+    const getValue = () => selectButton.dataset.selectedValue || '';
+
+    return { getValue, validate };
+  };
+
+  const setupContactForm = () => {
+    const form = document.querySelector('.contact-form');
+
+    if (!form) {
       return;
     }
 
-    const inputMetadata = inputs.map((input) => {
-      const { errorNode } = ensureErrorNode(input);
-      const definition = fieldDefinitions.find(
-        (field) => field.placeholder === input.placeholder,
-      );
+    const statusNode = form.querySelector('.contact-form-status');
+    const dropdown = setupDropdown();
 
-      input.required = true;
+    const fieldEntries = Object.entries(fieldDefinitions).map(([key, definition]) => {
+      const input = form.querySelector(`[data-field="${key}"]`);
 
-      if (input.placeholder === 'Email') {
-        input.type = 'email';
+      if (!input) {
+        return null;
       }
 
-      if (input.placeholder === 'Phone Number') {
-        input.type = 'tel';
-      }
+      const fieldNode = input.closest('.contact-form-field');
+      const errorNode = ensureFieldError(fieldNode);
 
-      const updateError = () => validateField(input, errorNode);
+      const validate = () => {
+        const error = definition.validate(input.value || '');
+        input.setAttribute('aria-invalid', error ? 'true' : 'false');
+        errorNode.textContent = error || '\u00A0';
+        return !error;
+      };
 
-      input.addEventListener('blur', updateError);
+      input.addEventListener('blur', validate);
       input.addEventListener('input', () => {
-        if (errorNode.textContent && errorNode.textContent.trim()) {
-          updateError();
+        if (input.getAttribute('aria-invalid') === 'true') {
+          validate();
         }
       });
 
-      return { input, errorNode, definition };
-    });
+      return { key, definition, input, validate };
+    }).filter(Boolean);
 
-    const submitButtons = shell.querySelectorAll('.send-wrapper');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
 
-    submitButtons.forEach((submitButton) => {
-      submitButton.addEventListener('click', (event) => {
-        event.preventDefault();
+      if (statusNode) {
+        statusNode.textContent = '';
+      }
 
-        const issues = [];
-        const payload = {};
+      const payload = {
+        name: '',
+        email: '',
+        phone: '',
+        serviceOfInterest: '',
+        timeline: '',
+        projectDetails: '',
+      };
+      let hasError = false;
 
-        inputMetadata.forEach(({ input, errorNode, definition }) => {
-          if (!definition) {
-            return;
-          }
+      fieldEntries.forEach((field) => {
+        const isValid = field.validate();
+        const trimmedValue = (field.input.value || '').trim();
 
-          const errorMessage = definition.validate(input.value);
-
-          errorNode.textContent = errorMessage || '\u00A0';
-          input.setAttribute('aria-invalid', errorMessage ? 'true' : 'false');
-          payload[definition.key] = input.value.trim();
-
-          if (errorMessage) {
-            issues.push(`${definition.placeholder}: ${errorMessage}`);
-          }
-        });
-
-        const dropdown = shell.querySelector('.service-of-interest-parent, .input-container4');
-
-        if (dropdown) {
-          const labelNode = dropdown.querySelector('.service-of-interest');
-          const errorNode = dropdown.closest('.field-group')?.querySelector('.field-error');
-          const selectedValue = dropdown.dataset.selectedValue || '';
-
-          if (!selectedValue) {
-            dropdown.setAttribute('aria-invalid', 'true');
-
-            if (errorNode) {
-              errorNode.textContent = 'required';
-            }
-
-            issues.push('Service of Interest: required');
-          } else {
-            dropdown.setAttribute('aria-invalid', 'false');
-
-            if (errorNode) {
-              errorNode.textContent = '\u00A0';
-            }
-          }
-
-          payload.serviceOfInterest = selectedValue || labelNode?.textContent.trim() || '';
+        if (field.key === 'project-details') {
+          payload.projectDetails = trimmedValue;
+        } else {
+          payload[field.key] = trimmedValue;
         }
 
-        if (issues.length) {
-          window.alert(issues.join('\n'));
-          return;
+        if (!isValid) {
+          hasError = true;
         }
-
-        console.log('Contact form payload:', payload);
       });
+
+      payload.serviceOfInterest = dropdown.getValue();
+
+      if (!dropdown.validate()) {
+        hasError = true;
+      }
+
+      if (hasError) {
+        if (statusNode) {
+          statusNode.textContent = 'Please fix the highlighted fields.';
+        }
+
+        const firstInvalid = form.querySelector('[aria-invalid="true"]');
+
+        if (firstInvalid) {
+          firstInvalid.focus();
+        }
+
+        return;
+      }
+
+      console.log(payload);
+      window.alert('send successfully');
     });
   };
 
   const closeMobileMenu = () => {
     document.querySelector('.js-mobile-menu-backdrop')?.classList.remove('open');
     document.querySelector('.js-mobile-menu-panel')?.classList.remove('open');
+    document.querySelector('.mobile-menu-toggle')?.setAttribute('aria-expanded', 'false');
   };
 
   const setupMobileMenu = () => {
-    const mobileToggle = document.querySelector('.mobile-menu-toggle, .align-justify-icon');
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (!mobileToggle || mobileToggle.dataset.menuEnhanced === 'true') {
+    if (!menuToggle) {
       return;
-    }
-
-    mobileToggle.dataset.menuEnhanced = 'true';
-    mobileToggle.setAttribute('role', 'button');
-    mobileToggle.setAttribute('tabindex', '0');
-
-    if (!mobileToggle.getAttribute('aria-label')) {
-      mobileToggle.setAttribute('aria-label', 'Open menu');
     }
 
     const backdrop = document.createElement('div');
@@ -536,46 +362,32 @@
     const panel = document.createElement('div');
     panel.className = 'js-mobile-menu-panel';
 
-    Object.entries({
-      Home: 'home',
-      Services: 'services',
-      'About me': 'about',
-      Portfolio: 'portfolio',
-      'Contact me': 'contact',
-    }).forEach(([label, key]) => {
+    Object.entries(sectionIds).forEach(([key]) => {
       const button = document.createElement('button');
-
       button.type = 'button';
       button.className = 'js-mobile-menu-item';
-      button.textContent = label;
+      button.textContent = key === 'home' ? 'Home' : key === 'about' ? 'About me' : key.charAt(0).toUpperCase() + key.slice(1);
+      button.dataset.target = key;
 
       button.addEventListener('click', () => {
         scrollToSection(key);
+        setActiveNav(key);
         closeMobileMenu();
       });
 
       panel.appendChild(button);
     });
 
+    document.body.append(backdrop, panel);
+
     const toggleMenu = () => {
       const isOpen = panel.classList.toggle('open');
       backdrop.classList.toggle('open', isOpen);
-      mobileToggle.setAttribute('aria-expanded', String(isOpen));
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
     };
 
+    menuToggle.addEventListener('click', toggleMenu);
     backdrop.addEventListener('click', closeMobileMenu);
-    panel.addEventListener('click', (event) => event.stopPropagation());
-
-    document.body.append(backdrop, panel);
-
-    mobileToggle.addEventListener('click', toggleMenu);
-    mobileToggle.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleMenu();
-      }
-    });
-
     window.addEventListener('resize', closeMobileMenu);
     window.addEventListener('scroll', closeMobileMenu, { passive: true });
     document.addEventListener('keydown', (event) => {
@@ -585,25 +397,12 @@
     });
   };
 
-  const setupShell = (shell) => {
-    setupNavigation(shell);
-    setupPortfolioFilters(shell);
-    setupDropdown(shell);
-    setupContactValidation(shell);
-  };
-
   const init = () => {
     document.documentElement.style.scrollBehavior = 'smooth';
 
-    const shells = Array.from(
-      document.querySelectorAll('.desktop-1, .only-mobile, .iphone-14-15-pro-max-1'),
-    );
-
-    const uniqueShells = shells.filter(
-      (shell, index, list) => list.findIndex((item) => item === shell) === index,
-    );
-
-    uniqueShells.forEach(setupShell);
+    setupNavigation();
+    setupPortfolioFilters();
+    setupContactForm();
     setupMobileMenu();
   };
 
@@ -612,6 +411,4 @@
   } else {
     init();
   }
-
- 
 })();

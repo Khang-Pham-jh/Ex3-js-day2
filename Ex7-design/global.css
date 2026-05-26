@@ -4,21 +4,45 @@ body {
 }
 
 :root {
-  /* Common Style Variables */
-
-  /* Color */
-  --Foundation-Orange-Normal: #fd6f00;
-  --Foundation-White-Dark-active: #707070;
-  --Foundation-White-Dark-hover: #959595;
-  --Foundation-White-Darker: #575757;
-  --Foundation-White-Light: #fefefe;
-  --Foundation-White-Normal-active: #c6c6c6;
-  --Foundation-White-Normal-hover: #dfdfdf;
-
-  /* Gradients */
-  --Gradint: linear-gradient(
+  /* Semantic color tokens */
+  --color-page-bg: #121212;
+  --color-primary: #fd6f00;
+  --color-primary-end: #e46400;
+  --color-primary-hover: #e60026;
+  --color-text-primary: #fefefe;
+  --color-text-secondary: #dfdfdf;
+  --color-text-muted: #959595;
+  --color-text-subtle: #707070;
+  --color-text-disabled: #575757;
+  --color-text-card: #c6c6c6;
+  --color-text-on-primary: #ffffff;
+  --color-surface-subtle: rgba(255, 255, 255, 0.04);
+  --color-surface-strong: rgba(255, 255, 255, 0.08);
+  --color-surface-hover: rgba(230, 230, 230, 0.08);
+  --color-surface-interactive: rgba(122, 122, 122, 0.09);
+  --color-surface-inverse-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-thumb: rgba(255, 255, 255, 0.15);
+  --color-border-muted: #959595;
+  --color-border-interactive: #7a7a7a;
+  --color-border-subtle: rgba(255, 255, 255, 0.12);
+  --color-danger: rgba(255, 80, 80, 0.9);
+  --color-danger-text: #ff6a6a;
+  --color-panel-bg: #171717;
+  --color-overlay: rgba(0, 0, 0, 0.38);
+  --color-shadow-strong: rgba(0, 0, 0, 0.35);
+  --color-shadow-stronger: rgba(0, 0, 0, 0.42);
+  --gradient-primary: linear-gradient(
     94.36deg,
-    var(--Foundation-Orange-Normal),
-    #e46400
+    var(--color-primary),
+    var(--color-primary-end)
   );
+
+  --Foundation-Orange-Normal: var(--color-primary);
+  --Foundation-White-Dark-active: var(--color-text-subtle);
+  --Foundation-White-Dark-hover: var(--color-text-muted);
+  --Foundation-White-Darker: var(--color-text-disabled);
+  --Foundation-White-Light: var(--color-text-primary);
+  --Foundation-White-Normal-active: var(--color-text-card);
+  --Foundation-White-Normal-hover: var(--color-text-secondary);
+  --Gradint: var(--gradient-primary);
 }
