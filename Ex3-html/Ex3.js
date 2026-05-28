@@ -1,6 +1,5 @@
-// ==========================================
-        // 1. INITIAL DATA
-        // ==========================================
+        // 
+        //
         // const initialQuestions = {
         //     start: {
         //         text: "Bạn muốn học mảng nào?",
@@ -28,10 +27,9 @@
         //     node_result: { result: "Bạn nên học Node.js, Express, REST API." },
         //     python_result: { result: "Bạn nên học Python, FastAPI, database." }
         // };
+        
         const initialQuestions = {};
-        // ==========================================
-        // 2. THE MANAGER CLASS 
-        // ==========================================
+
         class DecisionTreeManager {
             constructor(initialData) {
                 this.tree = JSON.parse(JSON.stringify(initialData));
@@ -77,9 +75,7 @@
 
         const treeManager = new DecisionTreeManager(initialQuestions);
 
-        // ==========================================
-        // 3. USER APP LOGIC 
-        // ==========================================
+        // USER APP LOGIC 
         const questionBox = document.getElementById("questionBox");
         const backBtn = document.getElementById("backBtn");
         const restartBtn = document.getElementById("restartBtn");
@@ -138,9 +134,7 @@
         });
 
 
-        // ==========================================
         // 4. ADMIN PANEL LOGIC
-        // ==========================================
         const adminForm = document.getElementById('adminForm');
         const nodeTypeSelect = document.getElementById('nodeType');
         const optionsConfig = document.getElementById('optionsConfig');
